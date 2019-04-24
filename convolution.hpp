@@ -8,14 +8,18 @@ struct pixel {
 };
 
 struct myImage {
-	pixel** pixels;
+	int*** pixels;
+   unsigned int width;
+   unsigned int height;
 };
 
 struct myKernel {
-  	double** kernel;
+  	double** pixels;
+   unsigned int width;
+   unsigned int height;
 };
 
-void prepareResult(myImage &result);
+void prepareResult(myImage &result, myImage data);
 
 bool readImage(const char *filename, myImage& data);
 

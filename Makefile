@@ -11,8 +11,10 @@ OBJS=stopwatch.o convolution.o
 main.exe: $(OBJS) main.cpp
 	$(CC) $(CFLAGS) main.cpp $(OBJS) -o $@ -ljpeg 
 
-test: main.exe
+valgrind: main.exe
 	valgrind ./main.exe cutie6.jpg kernel tmp.test
+test: main.exe
+	./main.exe cutie6.jpg kernel1 tmp.test
 # This cleans up the project
 clean: 
 	rm *.exe *.o

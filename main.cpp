@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
 
 	// task 1 - get command line arguments
 	const char *inputImage = argv[1];
-	const char *inputMatrix = argv[5]; 
-	const char *outputImage = argv[6];
+	const char *inputMatrix = argv[2]; 
+	const char *outputImage = argv[3];
 
 	stopwatch t[3];
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 	// task 4 - prepare resulting image matrix
 	t[1].start();
 	myImage result; 
-    prepareResult(result);
+    prepareResult(result, data);
 	// task 5 - do the convolution Baby
 	convolve(data, kernel, result); 
 	t[1].stop(); 
@@ -48,9 +48,11 @@ int main(int argc, char **argv) {
 	   	 
 	// task 9 - output timing
 	cout << "\n"; 
-	for (auto &i : t) {
-		cout << i.elapsedTime() << ", "; 
-	}
+	
+	cout << t[0].elapsedTime() << ", "; 
+	cout << t[1].elapsedTime() << ", "; 
+	cout << t[2].elapsedTime() << "\n"; 
+
 
 	// task 10 - release all allocated memory
 	releaseInputImage(data);
