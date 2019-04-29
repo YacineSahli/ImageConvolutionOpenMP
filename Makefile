@@ -1,7 +1,7 @@
 all: main.exe
 
 CC=g++
-CFLAGS=-Wall -g 
+CFLAGS=-Wall -g -fopenmp
 
 OBJS=stopwatch.o convolution.o
 

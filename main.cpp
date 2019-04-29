@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 		cerr << "\nError reading the input kernel data, file: " << inputMatrix; 
 		return 254;
 	}
+	t[0].stop();
 
 
 	// task 4 - prepare resulting image matrix

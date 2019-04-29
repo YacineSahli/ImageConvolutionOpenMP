@@ -9,14 +9,15 @@ struct pixel {
 
 struct myImage {
 	int*** pixels;
-   unsigned int width;
-   unsigned int height;
+   int width;
+   int height;
 };
 
 struct myKernel {
   	double** pixels;
-   unsigned int width;
-   unsigned int height;
+   int width;
+   int height;
+   int divisor;
 };
 
 void prepareResult(myImage &result, myImage data);
@@ -27,6 +28,9 @@ bool readKernel(const char *filename, myKernel& kernel);
 
 void convolve(myImage &data, myKernel &kernel, myImage &result);
 
+void convolve2D(myImage &data, myKernel &kernel, myImage &result);
+
+void convolve1D(myImage &data, myKernel &kernel, myImage &result);
 
 bool outputImageFile(const myImage &result, const char *outputImage);
 
