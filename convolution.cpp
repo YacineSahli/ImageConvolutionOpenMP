@@ -1,3 +1,5 @@
+#define int_p_NULL (int*)NULL
+
 #include "convolution.hpp"
 #include <algorithm>
 #include <fstream>
@@ -6,36 +8,47 @@
 #include <cmath>
 #include <vector>
 #include <boost/gil/extension/io/jpeg_io.hpp>
+#include <boost/gil/extension/io/png_io.hpp>
+#include "boost/filesystem.hpp"
 
 using namespace std;
 namespace gil = boost::gil;
+namespace fs = boost::filesystem;
 
 // Read the original point cloud data
-bool readImage(const char *filename, myImage& data) {
+bool readImage(string filename, myImage& data) {
 	gil::rgb8_image_t img;
-	gil::jpeg_read_image(filename, img);
-	std::cout << "Read complete, got an image " << img.width()
-			<< " by " << img.height() << " pixels\n";
-	
+
+	if(filename.substr(filename.length() - 4) == ".jpg" || filename.substr(filename.length() - 5) == ".jpeg"){
+		gil::jpeg_read_image(filename, img);
+	}
+	else if(filename.substr(filename.length() - 4) == ".png"){
+		gil::png_read_image(filename, img);
+	}
+
+	cout << "Read complete, got an image\n";
+	cout << "image:" << img.width() << "x" << img.height() << "\n";
+
 	data.width = img.width();
 	data.height = img.height();
 
-	data.pixels = new int**[img.width()];
-	for(uint i = 0; i<img.width(); i++){
-		data.pixels[i] = new int*[img.height()];
-		for(uint j = 0; j<img.height(); j++){
+	data.pixels = new int**[data.width];
+
+	gil::rgb8_pixel_t px = *const_view(img).at(0, 0);
+
+	for(int i = 0; i<data.width; i++){
+		data.pixels[i] = new int*[data.height];
+		for(int j = 0; j<data.height; j++){
 			data.pixels[i][j] = new int[3];
-			gil::rgb8_pixel_t px = *const_view(img).at(i, j);
+			px = *const_view(img).at(i, j);
 			data.pixels[i][j][0] = (int)px[0] ;
 			data.pixels[i][j][1] = (int)px[1] ;
 			data.pixels[i][j][2] = (int)px[2] ;
 		}
 	}
-
-
 	return true;
 }
-bool readKernel(const char *filename, myKernel& kernel) {
+bool readKernel(string filename, myKernel &kernel) {
 	fstream inp(filename);
 	if (!inp) {
 		cerr << "\nError opening kernel file: " << filename;
@@ -43,11 +56,12 @@ bool readKernel(const char *filename, myKernel& kernel) {
 	}
 	inp >> kernel.width >> kernel.height;
 	string str;
+	cout << "kernel:" << kernel.width << "x" << kernel.height;
 	std::getline(inp, str);  // go to next line
 	kernel.pixels = new double*[kernel.width];
-	kernel.divisor = 0; 
+	kernel.divisor = 0;
 	for(int i = kernel.width - 1; i>=0; i--){ // Flip the kernel while reading
-		kernel.pixels[i] = new double(kernel.height);
+		kernel.pixels[i] = new double[kernel.height];
 		for(int j = kernel.height -1; j>=0; j--){
 			inp >> kernel.pixels[i][j];
 			kernel.divisor += kernel.pixels[i][j];
@@ -59,7 +73,7 @@ bool readKernel(const char *filename, myKernel& kernel) {
 			for(int j = 0; j<kernel.height; j++){
 				kernel.pixels[i][j] /= kernel.divisor;
 			}
-		} 
+		}
 	}
 	return true;
 }
@@ -78,7 +92,9 @@ void prepareResult(myImage &result, myImage data) {
 			result.pixels[i][j][1] = 0;
 			result.pixels[i][j][2] = 0;
 		}
+
 	}
+
 }
 
 
@@ -109,30 +125,24 @@ void convolve2D(myImage &data, myKernel &kernel, myImage &result){
 						jj = 0;
 					else if(jj >= data.height)
 						jj = data.height - 1;
-					
+
 					result.pixels[i][j][0] += data.pixels[ii][jj][0] * kernel.pixels[m][n];
 					result.pixels[i][j][1] += data.pixels[ii][jj][1] * kernel.pixels[m][n];
 					result.pixels[i][j][2] += data.pixels[ii][jj][2] * kernel.pixels[m][n];
 				}
-			} 
-			if(result.pixels[i][j][0] > 255){
+			}
+			if(result.pixels[i][j][0] > 255)
 				result.pixels[i][j][0] = 255;
-			}
-			else if(result.pixels[i][j][0] <0){
+			else if(result.pixels[i][j][0] < 0)
 				result.pixels[i][j][0] = 0;
-			}
-			if(result.pixels[i][j][1] > 255){
+			if(result.pixels[i][j][1] > 255)
 				result.pixels[i][j][1] = 255;
-			}
-			else if(result.pixels[i][j][1] <0){
+			else if(result.pixels[i][j][1] < 0)
 				result.pixels[i][j][1] = 0;
-			}
-			if(result.pixels[i][j][2] > 255){
+			if(result.pixels[i][j][2] > 255)
 				result.pixels[i][j][2] = 255;
-			}
-			else if(result.pixels[i][j][2] <0){
+			else if(result.pixels[i][j][2] < 0)
 				result.pixels[i][j][2] = 0;
-			}
 		}
 	}
 }
@@ -160,7 +170,7 @@ void releaseInputKernel(myKernel &kernel) {
 	delete[] kernel.pixels;
 }
 
-// task 10 - release allocated memory for output image
+// release allocated memory for output image
 void releaseOutputImage(myImage &result) {
 	for(int i = 0; i<result.width; i++){
 		for(int j = 0; j<result.height; j++){
@@ -171,17 +181,26 @@ void releaseOutputImage(myImage &result) {
 	delete[] result.pixels;
 }
 
-// Task 8a - Output transformed point cloud data
-bool outputImageFile(const myImage &result, const char *outputImage) {
-	
+// Output transformed point cloud data
+bool outputImageFile(const myImage &result, string outputImage) {
+
 	gil::rgb8_image_t toWrite(result.width, result.height);
 	gil::rgb8_image_t::view_t v = view(toWrite);
 	for(int i=0; i< result.width; i++){
 		for(int j=0; j< result.height;j++){
-			v(i, j) = gil::rgb8_pixel_t(result.pixels[i][j][0], result.pixels[i][j][1], result.pixels[i][j][2]); 
+			v(i, j) = gil::rgb8_pixel_t(result.pixels[i][j][0], result.pixels[i][j][1], result.pixels[i][j][2]);
 		}
 	}
-	gil::jpeg_write_view(outputImage, const_view(toWrite)); 
+	fs::path outputPath(outputImage);
+	if(outputPath.parent_path().string() != "" && !fs::is_directory(outputPath.parent_path())){
+		fs::create_directory(outputPath.parent_path());
+	}
+	if(outputImage.substr(outputImage.length() - 4) == ".jpg" || outputImage.substr(outputImage.length() - 5) == ".jpeg"){
+		gil::jpeg_write_view(outputImage, const_view(toWrite));
+	}
+	else if(outputImage.substr(outputImage.length() - 4) == ".png"){
+		gil::png_write_view(outputImage, const_view(toWrite));
+	}
 
 	return true;
 }
