@@ -12,7 +12,7 @@ main.exe: $(OBJS) main.cpp
 	$(CC) $(CFLAGS) main.cpp $(OBJS) -o $@ -ljpeg -lpng -lz -lboost_system -lboost_filesystem
 
 valgrind: main.exe
-	valgrind ./main.exe dragon.jpg kernels/box_blur3 outFolder/dragon.jpg
+	valgrind ./main.exe images/dragon.png kernels/box_blur3 outFolder/dragon.jpg
 test: main.exe
 	./main.exe images/dragon.jpg kernels/box_blur3 outFolder/dragon.jpg
 speed: main.exe

@@ -5,6 +5,9 @@
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
+#include <iterator>
+#include <vector>
+
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -74,12 +77,14 @@ int main(int argc, char **argv) {
 
 
 	if(fs::is_directory(inputImage)){
-        	for(auto& entry : boost::make_iterator_range(fs::directory_iterator(inputImage), {})){
+		std::vector<fs::directory_entry> v;
+		copy(fs::directory_iterator(inputImage), fs::directory_iterator(), back_inserter(v));
+		for(std::vector<fs::directory_entry>::const_iterator entry = v.begin(); entry < v.end(); ++entry){
 			fs::path dstFolder = outputImage;
 			if(!fs::exists(dstFolder) || !fs::is_directory(dstFolder)){
      				fs::create_directory(dstFolder);
 			}
-            		processImage(entry.path().string(), inputMatrix, outputImage + "/convolved_" + entry.path().filename().string());
+            		processImage((*entry).path().string(), inputMatrix, outputImage + "/convolved_" + (*entry).path().filename().string());
 		}
 	}
 	else if (fs::is_regular_file(inputImage)){
