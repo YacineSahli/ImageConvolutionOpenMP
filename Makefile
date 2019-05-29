@@ -16,14 +16,22 @@ valgrind: main.exe
 test: main.exe
 	./main.exe images/dragon.jpg kernels/box_blur3 outFolder/dragon.jpg
 speed: main.exe
-	./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg
-	./main.exe images/dragon.jpg kernels/box_blur5 outFolder/tmp1.jpg
-	./main.exe images/dragon.jpg kernels/box_blur7 outFolder/tmp2.jpg
-	./main.exe images/dragon.jpg kernels/box_blur9 outFolder/tmp3.jpg
-	./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp4.jpg
-	./main.exe images/veryBig.jpg kernels/box_blur5 outFolder/tmp5.jpg
-	./main.exe images/veryBig.jpg kernels/box_blur7 outFolder/tmp6.jpg
-	./main.exe images/veryBig.jpg kernels/box_blur9 outFolder/tmp7.jpg
+	./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg > tmp.txt
+	./main.exe images/dragon.jpg kernels/box_blur5 outFolder/tmp1.jpg >> tmp.txt
+	./main.exe images/dragon.jpg kernels/box_blur7 outFolder/tmp2.jpg >>tmp.txt
+	./main.exe images/dragon.jpg kernels/box_blur9 outFolder/tmp3.jpg >> tmp.txt
+	./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp4.jpg >> tmp.txt
+	./main.exe images/veryBig.jpg kernels/box_blur5 outFolder/tmp5.jpg >> tmp.txt
+	./main.exe images/veryBig.jpg kernels/box_blur7 outFolder/tmp6.jpg >> tmp.txt
+	./main.exe images/veryBig.jpg kernels/box_blur9 outFolder/tmp7.jpg >> tmp.txt
+stats: main.exe
+
+	OMP_NUM_THREADS=1 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg > tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=2 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=4 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=8 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=16 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=32 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
 folder: main.exe
 	./main.exe images kernels/box_blur3 outFolder
 # This cleans up the project

@@ -61,7 +61,7 @@ void processImage(string inputImage, string inputMatrix, string outputImage){
 
 	#ifdef STATS
 		cout << omp_get_max_threads() << " ";
-		cout << t[0].elapsedTime() << " " << t[1].elapsedTime() << " " << t[2].elapsedTime() << " ";
+		cout << t[0].elapsedTime() << " " << t[1].elapsedTime() << " " << t[2].elapsedTime() << "\n";
 	#endif
 	// task 10 - release all allocatedomp environment variable memory
 	releaseInputImage(data);
