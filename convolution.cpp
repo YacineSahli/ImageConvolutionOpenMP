@@ -173,12 +173,12 @@ bool readKernel(string filename, myKernel &kernel) {
 	return true;
 }
 
-// This function prepare the accumulator struct votes so that it will have sufficient memory for storing all votes.
 void prepareResult(myImage &result, myImage data) {
 	result.width = data.width;
 	result.height = data.height;
 
 	result.pixels = new int**[result.width];
+	#pragma omp parallel for
 	for(int i = 0; i<result.width; i++){
 		result.pixels[i] = new int*[result.height];
 		for(int j = 0; j<result.height; j++){
