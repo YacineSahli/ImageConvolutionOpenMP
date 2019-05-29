@@ -26,12 +26,19 @@ speed: main.exe
 	./main.exe images/veryBig.jpg kernels/box_blur9 outFolder/tmp7.jpg >> tmp.txt
 stats: main.exe
 
-	OMP_NUM_THREADS=1 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg > tmp_smallpic_different_thread_number.txt
-	OMP_NUM_THREADS=2 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
-	OMP_NUM_THREADS=4 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
-	OMP_NUM_THREADS=8 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >  tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=2  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=4  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+	OMP_NUM_THREADS=8  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
 	OMP_NUM_THREADS=16 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
 	OMP_NUM_THREADS=32 ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_smallpic_different_thread_number.txt
+
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >  tmp_bigpic_different_thread_number.txt
+	OMP_NUM_THREADS=2  ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
+	OMP_NUM_THREADS=4  ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
+	OMP_NUM_THREADS=8  ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
+	OMP_NUM_THREADS=16 ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
+	OMP_NUM_THREADS=32 ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
 folder: main.exe
 	./main.exe images kernels/box_blur3 outFolder
 # This cleans up the project
