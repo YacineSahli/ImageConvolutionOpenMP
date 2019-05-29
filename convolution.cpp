@@ -250,7 +250,7 @@ void convolve2D(myImage &data, myKernel kernel, myImage &result){
 	int kCenterX = (kernel.width - 1) / 2;
 	int kCenterY = (kernel.height - 1) / 2;
 
-	#pragma omp parallel for
+	#pragma omp parallel for collapse(2) schedule(static)
 	for(int i=0; i < data.width; i++)               // rows
 	{
 		for(int j=0; j < data.height; j++)          // columns
