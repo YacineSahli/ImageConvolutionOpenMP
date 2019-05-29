@@ -379,6 +379,7 @@ bool outputImageFile(const myImage &result, string outputImage) {
 
 	gil::rgb8_image_t toWrite(result.width, result.height);
 	gil::rgb8_image_t::view_t v = view(toWrite);
+	#pragma omp parallel for
 	for(int i=0; i< result.width; i++){
 		for(int j=0; j< result.height;j++){
 			v(i, j) = gil::rgb8_pixel_t(result.pixels[i][j][0], result.pixels[i][j][1], result.pixels[i][j][2]);
