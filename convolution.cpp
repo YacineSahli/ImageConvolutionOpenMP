@@ -323,6 +323,7 @@ void convolve(myImage &data, myKernel kernel, myImage &result){
 		resultTemp.height = data.height;
 
 		resultTemp.pixels = new int**[resultTemp.width];
+		#pragma omp parallel for
 		for(int i = 0; i<resultTemp.width; i++){
 			resultTemp.pixels[i] = new int*[resultTemp.height];
 			for(int j = 0; j<resultTemp.height; j++){
