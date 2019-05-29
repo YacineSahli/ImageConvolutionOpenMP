@@ -4,9 +4,9 @@ Image convolution using C++ and OpenMP for the Parallel and Distributed Computin
 # Compilation
 
 To compile with debug info:
-+ make CFLAGS=-DDEBUG
++ ```make CFLAGS=-DDEBUG```
 To compile with statistics ( used to make plot file and then graphics ):
-+ make CFLAGS=-DSTATS
++ ```make CFLAGS=-DSTATS```
 
 # OpenMP
 
