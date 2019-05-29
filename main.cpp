@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
 	if(fs::is_directory(inputImage)){
 		std::vector<fs::directory_entry> v;
 		copy(fs::directory_iterator(inputImage), fs::directory_iterator(), back_inserter(v));
+		#pragma omp parallel for
 		for(std::vector<fs::directory_entry>::const_iterator entry = v.begin(); entry < v.end(); ++entry){
 			fs::path dstFolder = outputImage;
 			if(!fs::exists(dstFolder) || !fs::is_directory(dstFolder)){
