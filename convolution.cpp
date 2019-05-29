@@ -53,7 +53,7 @@ int rankOfMatrix(const myKernel kernel){
         // 1) If there is a row below it with non-zero
         //    entry, then swap this row with that row
         //    and process that row
-        // 2) If all elements in current column below
+        // 2) If
         //    mat[r][row] are 0, then remvoe this column
         //    by swapping it with last column and
         //    reducing number of columns by 1.
@@ -110,9 +110,14 @@ bool readImage(string filename, myImage& data) {
 		gil::png_read_image(filename, img);
 	}
 
-	cout << "Read complete, got an image\n";
-	cout << "image:" << img.width() << "x" << img.height() << "\n";
 
+	#ifdef DEBUG
+		cout << "Read complete, got an image\n";
+		cout << "image:" << img.width() << "x" << img.height() << "\n";
+	#endif
+	#ifdef STATS
+		cout << img.width() << "x" << img.height() << " ";
+	#endif
 	data.width = img.width();
 	data.height = img.height();
 
@@ -140,7 +145,12 @@ bool readKernel(string filename, myKernel &kernel) {
 	}
 	inp >> kernel.width >> kernel.height;
 	string str;
-	cout << "kernel:" << kernel.width << "x" << kernel.height;
+	#ifdef DEBUG
+		cout << "kernel:" << kernel.width << "x" << kernel.height;
+	#endif
+	#ifdef STATS
+		cout << kernel.width << "x" << kernel.height << " ";
+	#endif
 	std::getline(inp, str);  // go to next line
 	kernel.pixels = new double*[kernel.width];
 	kernel.divisor = 0.0;
@@ -296,7 +306,9 @@ void convolve(myImage &data, myKernel kernel, myImage &result){
 		}
 	}
 	if(rankOfMatrix(kernelCopy) == 1){
-		cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
+		#ifdef DEBUG
+			cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
+		#endif
 		double kernel1[kernel.width];
 		double kernel2[kernel.height];
 		for(int i = 0; i < kernel.width; i++){

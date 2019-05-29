@@ -7,8 +7,8 @@
 #include <boost/range/iterator_range.hpp>
 #include <iterator>
 #include <vector>
-
-
+#include <cstdlib>
+#include <omp.h>
 using namespace std;
 namespace fs = boost::filesystem;
 void processImage(string inputImage, string inputMatrix, string outputImage){
@@ -48,17 +48,22 @@ void processImage(string inputImage, string inputMatrix, string outputImage){
 	t[2].stop();
 
 	// task 9 - output timing
-	cout << "\n";
 
 
 	//cout << t[0].elapsedTime() << ", ";
 	//cout << t[1].elapsedTime() << ", ";
 	//cout << t[2].elapsedTime() << "\n";
+	#ifdef DEBUG
+		cout << "\n";
+		cout << "convolution time:" << t[1].elapsedTime() << "\n";
+		cout << "total time:" << t[0].elapsedTime() + t[1].elapsedTime() + t[2].elapsedTime() << "\n\n";
+	#endif
 
-	cout << "convolution time:" << t[1].elapsedTime() << "\n";
-	cout << "total time:" << t[0].elapsedTime() + t[1].elapsedTime() + t[2].elapsedTime() << "\n\n";
-
-	// task 10 - release all allocated memory
+	#ifdef STATS
+		cout << omp_get_max_threads() << " ";
+		cout << t[0].elapsedTime() << " " << t[1].elapsedTime() << " " << t[2].elapsedTime() << " ";
+	#endif
+	// task 10 - release all allocatedomp environment variable memory
 	releaseInputImage(data);
 	releaseInputKernel(kernel);
 	releaseOutputImage(result);
