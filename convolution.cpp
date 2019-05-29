@@ -125,6 +125,7 @@ bool readImage(string filename, myImage& data) {
 
 	gil::rgb8_pixel_t px = *const_view(img).at(0, 0);
 
+	#pragma omp parallel for private(px)
 	for(int i = 0; i<data.width; i++){
 		data.pixels[i] = new int*[data.height];
 		for(int j = 0; j<data.height; j++){
