@@ -12,4 +12,4 @@ To compile with statistics ( used to make plot file and then graphics ):
 
 ## Change threads number
 
-´´export OMP_NUM_THREADS´´
+```export OMP_NUM_THREADS```
