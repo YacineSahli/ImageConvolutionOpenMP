@@ -197,7 +197,7 @@ void prepareResult(myImage &result, myImage data) {
 void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, myImage &result){
 	int kCenter = (kernelSize - 1) / 2;
 
-	#pragma omp parallel for default(none) shared(result,data,kernelSize,kernel) private(direction,kCenter)
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(direction,kCenter,data,kernelSize,kernel)
 	for(int i=0; i < data.width; i++)               // rows
 	{
 		for(int j=0; j < data.height; j++)          // columns
@@ -229,7 +229,6 @@ void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, my
 					result.pixels[i][j][2] += data.pixels[i][ii][2] * kernel[m];
 				}
 			}
-
 			if(result.pixels[i][j][0] > 255)
 				result.pixels[i][j][0] = 255;
 			else if(result.pixels[i][j][0] < 0)
@@ -251,7 +250,7 @@ void convolve2D(myImage &data, myKernel kernel, myImage &result){
 	int kCenterX = (kernel.width - 1) / 2;
 	int kCenterY = (kernel.height - 1) / 2;
 
-	#pragma omp parallel for collapse(2) schedule(static)
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(kCenterX,kCenterY,data,kernel)
 	for(int i=0; i < data.width; i++)               // rows
 	{
 		for(int j=0; j < data.height; j++)          // columns
@@ -306,7 +305,7 @@ void convolve(myImage &data, myKernel kernel, myImage &result){
 			kernelCopy.pixels[i][j] = kernel.pixels[i][j];
 		}
 	}
-	if(rankOfMatrix(kernelCopy) == 1){
+	if(kernel.width >4 && kernel.height >4 && rankOfMatrix(kernelCopy) == 1){
 		#ifdef DEBUG
 			cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
 		#endif
