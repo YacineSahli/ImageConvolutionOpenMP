@@ -197,7 +197,7 @@ void prepareResult(myImage &result, myImage data) {
 void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, myImage &result){
 	int kCenter = (kernelSize - 1) / 2;
 
-	#pragma omp parallel for
+	#pragma omp parallel for default(none) shared(result,data,kernelSize,kernel) private(direction,kCenter)
 	for(int i=0; i < data.width; i++)               // rows
 	{
 		for(int j=0; j < data.height; j++)          // columns
