@@ -158,8 +158,8 @@ bool readKernel(string filename, myKernel &kernel) {
 void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int direction, gil::rgb8_image_t &result){
 	int kCenter = (kernelSize - 1) / 2;
 	gil::rgb8_image_t::view_t v = view(result);
-
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(v,direction,kCenter,data,kernelSize,kernel)
+	gil::rgb8_image_t::const_view_t dataView = const_view(data);
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(dataView,v,direction,kCenter,data,kernelSize,kernel)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -181,14 +181,14 @@ void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int dir
 				else if(direction == 1 && ii >= data.height())
 					ii = data.height() - 1;
 				if(direction == 0){
-					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(ii,j);
+					gil::rgb8_pixel_t pxOriginal = dataView(ii,j);
 					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
 					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
 								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
 								   (int)px[2] + (int)pxOriginal[2] * kernel[m]);
 				}
 				else if(direction == 1){
-					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(i,ii);
+					gil::rgb8_pixel_t pxOriginal = dataView(i,ii);
 					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
 					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
 								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
@@ -216,8 +216,9 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	int kCenterY = (kernel.height - 1) / 2;
 
 	gil::rgb8_image_t::view_t v = view(result);
+	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(v,kCenterX,kCenterY,data,kernel)
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(dataView,v,kCenterX,kCenterY,data,kernel)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -240,7 +241,7 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 					else if(jj >= data.height())
 						jj = data.height() - 1;
 
-					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(ii,jj);
+					gil::rgb8_pixel_t pxOriginal = dataView(ii,jj);
 					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
 					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel.pixels[m][n],
 								   (int)px[1] + (int)pxOriginal[1] * kernel.pixels[m][n],
