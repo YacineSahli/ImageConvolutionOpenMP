@@ -21,10 +21,10 @@ struct myImage {
 };
 
 struct myKernel {
-	double** pixels;
+	int** pixels;
 	int width;
    	int height;
-   	double divisor;
+   	int divisor;
 };
 
 void swap(const myKernel kernel, int row1, int row2, int col);

@@ -133,10 +133,10 @@ bool readKernel(string filename, myKernel &kernel) {
 		cout << kernel.width << "x" << kernel.height << " ";
 	#endif
 	std::getline(inp, str);  // go to next line
-	kernel.pixels = new double*[kernel.width];
-	kernel.divisor = 0.0;
+	kernel.pixels = new int*[kernel.width];
+	kernel.divisor = 0;
 	for(int i = kernel.width - 1; i>=0; i--){ // Flip the kernel while reading
-		kernel.pixels[i] = new double[kernel.height];
+		kernel.pixels[i] = new int[kernel.height];
 		for(int j = kernel.height -1; j>=0; j--){
 			inp >> kernel.pixels[i][j];
 			kernel.divisor += kernel.pixels[i][j];
@@ -265,9 +265,9 @@ void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &resul
 	kernelCopy.width = kernel.width;
 	kernelCopy.height = kernel.height;
 	kernelCopy.divisor = kernel.divisor;
-	kernelCopy.pixels = new double*[kernelCopy.width];
+	kernelCopy.pixels = new int*[kernelCopy.width];
 	for(int i = 0; i < kernel.width; i++){
-		kernelCopy.pixels[i] = new double[kernel.height];
+		kernelCopy.pixels[i] = new int[kernel.height];
 		for(int j = 0; j< kernel.height; j++){
 			kernelCopy.pixels[i][j] = kernel.pixels[i][j];
 		}
