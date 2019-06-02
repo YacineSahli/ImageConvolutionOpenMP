@@ -11,6 +11,8 @@
 #include <omp.h>
 using namespace std;
 namespace fs = boost::filesystem;
+namespace gil = boost::gil;
+
 void processImage(string inputImage, string inputMatrix, string outputImage){
 
 	stopwatch t[3];
@@ -23,7 +25,7 @@ void processImage(string inputImage, string inputMatrix, string outputImage){
 	}
 	// task 2 & 3 - allocate memory & read inputImage and matrix
 	t[0].start();
-	myImage data;
+	gil::rgb8_image_t data;
 	if (!readImage(inputImage, data)) {
 		cerr << "\nError reading the input image data, file: " << inputImage;
 	}
@@ -36,8 +38,7 @@ void processImage(string inputImage, string inputMatrix, string outputImage){
 
 	// task 4 - prepare resulting image matrix
 	t[1].start();
-	myImage result;
-    	prepareResult(result, data);
+	gil::rgb8_image_t result(data.width(), data.height());
 	// task 5 - do the convolution Baby
 	convolve(data, kernel, result);
 	t[1].stop();
@@ -64,9 +65,7 @@ void processImage(string inputImage, string inputMatrix, string outputImage){
 		cout << t[0].elapsedTime() << " " << t[1].elapsedTime() << " " << t[2].elapsedTime() << "\n";
 	#endif
 	// task 10 - release all allocatedomp environment variable memory
-	releaseInputImage(data);
 	releaseInputKernel(kernel);
-	releaseOutputImage(result);
 }
 int main(int argc, char **argv) {
 	if (argc != 4) {

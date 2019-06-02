@@ -100,42 +100,22 @@ int rankOfMatrix(const myKernel kernel){
 }
 
 // Read the original point cloud data
-bool readImage(string filename, myImage& data) {
-	gil::rgb8_image_t img;
-
+bool readImage(string filename, gil::rgb8_image_t &data) {
 	if(filename.substr(filename.length() - 4) == ".jpg" || filename.substr(filename.length() - 5) == ".jpeg"){
-		gil::jpeg_read_image(filename, img);
+		gil::jpeg_read_image(filename, data);
 	}
 	else if(filename.substr(filename.length() - 4) == ".png"){
-		gil::png_read_image(filename, img);
+		gil::png_read_image(filename, data);
 	}
 
 
 	#ifdef DEBUG
 		cout << "Read complete, got an image\n";
-		cout << "image:" << img.width() << "x" << img.height() << "\n";
+		cout << "image:" << data.width() << "x" << data.height() << "\n";
 	#endif
 	#ifdef STATS
-		cout << img.width() << "x" << img.height() << " ";
+		cout << data.width() << "x" << data.height() << " ";
 	#endif
-	data.width = img.width();
-	data.height = img.height();
-
-	data.pixels = new int**[data.width];
-
-	gil::rgb8_pixel_t px = *const_view(img).at(0, 0);
-
-	#pragma omp parallel for private(px)
-	for(int i = 0; i<data.width; i++){
-		data.pixels[i] = new int*[data.height];
-		for(int j = 0; j<data.height; j++){
-			data.pixels[i][j] = new int[3];
-			px = *const_view(img).at(i, j);
-			data.pixels[i][j][0] = (int)px[0] ;
-			data.pixels[i][j][1] = (int)px[1] ;
-			data.pixels[i][j][2] = (int)px[2] ;
-		}
-	}
 	return true;
 }
 bool readKernel(string filename, myKernel &kernel) {
@@ -173,34 +153,16 @@ bool readKernel(string filename, myKernel &kernel) {
 	return true;
 }
 
-void prepareResult(myImage &result, myImage data) {
-	result.width = data.width;
-	result.height = data.height;
-
-	result.pixels = new int**[result.width];
-	#pragma omp parallel for
-	for(int i = 0; i<result.width; i++){
-		result.pixels[i] = new int*[result.height];
-		for(int j = 0; j<result.height; j++){
-			result.pixels[i][j] = new int[3];
-			result.pixels[i][j][0] = 0;
-			result.pixels[i][j][1] = 0;
-			result.pixels[i][j][2] = 0;
-		}
-
-	}
-
-}
-
 
 // Perform a 1D convolution, direction : 0 horizontal, 1 vertical
-void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, myImage &result){
+void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int direction, gil::rgb8_image_t &result){
 	int kCenter = (kernelSize - 1) / 2;
+	gil::rgb8_image_t::view_t v = view(result);
 
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(direction,kCenter,data,kernelSize,kernel)
-	for(int i=0; i < data.width; i++)               // rows
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(v,direction,kCenter,data,kernelSize,kernel)
+	for(int i=0; i < data.width(); i++)               // rows
 	{
-		for(int j=0; j < data.height; j++)          // columns
+		for(int j=0; j < data.height(); j++)          // columns
 		{
 			for(int m=0; m < kernelSize; m++) // kernel columns
 			{
@@ -214,22 +176,26 @@ void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, my
 				// Use the value of the closest pixel if out of bound
 				if(ii < 0)
 					ii = 0;
-				else if(direction == 0 && ii >= data.width)
-					ii = data.width - 1;
-				else if(direction == 1 && ii >= data.height)
-					ii = data.height - 1;
+				else if(direction == 0 && ii >= data.width())
+					ii = data.width() - 1;
+				else if(direction == 1 && ii >= data.height())
+					ii = data.height() - 1;
 				if(direction == 0){
-					result.pixels[i][j][0] += data.pixels[ii][j][0] * kernel[m];
-					result.pixels[i][j][1] += data.pixels[ii][j][1] * kernel[m];
-					result.pixels[i][j][2] += data.pixels[ii][j][2] * kernel[m];
+					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(ii,j);
+					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
+					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
+								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
+								   (int)px[2] + (int)pxOriginal[2] * kernel[m]);
 				}
 				else if(direction == 1){
-					result.pixels[i][j][0] += data.pixels[i][ii][0] * kernel[m];
-					result.pixels[i][j][1] += data.pixels[i][ii][1] * kernel[m];
-					result.pixels[i][j][2] += data.pixels[i][ii][2] * kernel[m];
+					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(i,ii);
+					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
+					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
+								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
+								   (int)px[2] + (int)pxOriginal[2] * kernel[m]);
 				}
 			}
-			if(result.pixels[i][j][0] > 255)
+			/*if(result.pixels[i][j][0] > 255)
 				result.pixels[i][j][0] = 255;
 			else if(result.pixels[i][j][0] < 0)
 				result.pixels[i][j][0] = 0;
@@ -240,20 +206,21 @@ void convolve1D(myImage &data, double kernel[],int kernelSize, int direction, my
 			if(result.pixels[i][j][2] > 255)
 				result.pixels[i][j][2] = 255;
 			else if(result.pixels[i][j][2] < 0)
-				result.pixels[i][j][2] = 0;
+				result.pixels[i][j][2] = 0;*/
 		}
 	}
 }
 // This function conducts a 2D convolution.
-void convolve2D(myImage &data, myKernel kernel, myImage &result){
-
+void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
 	int kCenterX = (kernel.width - 1) / 2;
 	int kCenterY = (kernel.height - 1) / 2;
 
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(kCenterX,kCenterY,data,kernel)
-	for(int i=0; i < data.width; i++)               // rows
+	gil::rgb8_image_t::view_t v = view(result);
+
+	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(v,kCenterX,kCenterY,data,kernel)
+	for(int i=0; i < data.width(); i++)               // rows
 	{
-		for(int j=0; j < data.height; j++)          // columns
+		for(int j=0; j < data.height(); j++)          // columns
 		{
 			for(int m=0; m < kernel.width; m++)     // kernel rows
 			{
@@ -266,19 +233,21 @@ void convolve2D(myImage &data, myKernel kernel, myImage &result){
 					// Use the value of the closest pixel if out of bound
 					if(ii < 0)
 						ii = 0;
-					else if(ii >= data.width)
-						ii = data.width - 1;
+					else if(ii >= data.width())
+						ii = data.width() - 1;
 					if(jj < 0)
 						jj = 0;
-					else if(jj >= data.height)
-						jj = data.height - 1;
+					else if(jj >= data.height())
+						jj = data.height() - 1;
 
-					result.pixels[i][j][0] += data.pixels[ii][jj][0] * kernel.pixels[m][n];
-					result.pixels[i][j][1] += data.pixels[ii][jj][1] * kernel.pixels[m][n];
-					result.pixels[i][j][2] += data.pixels[ii][jj][2] * kernel.pixels[m][n];
+					gil::rgb8_pixel_t pxOriginal = *const_view(data).at(ii,jj);
+					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
+					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel.pixels[m][n],
+								   (int)px[1] + (int)pxOriginal[1] * kernel.pixels[m][n],
+								   (int)px[2] + (int)pxOriginal[2] * kernel.pixels[m][n]);
 				}
 			}
-			if(result.pixels[i][j][0] > 255)
+			/*if(result.pixels[i][j][0] > 255)
 				result.pixels[i][j][0] = 255;
 			else if(result.pixels[i][j][0] < 0)
 				result.pixels[i][j][0] = 0;
@@ -289,11 +258,11 @@ void convolve2D(myImage &data, myKernel kernel, myImage &result){
 			if(result.pixels[i][j][2] > 255)
 				result.pixels[i][j][2] = 255;
 			else if(result.pixels[i][j][2] < 0)
-				result.pixels[i][j][2] = 0;
+				result.pixels[i][j][2] = 0;*/
 		}
 	}
 }
-void convolve(myImage &data, myKernel kernel, myImage &result){
+void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
 	myKernel kernelCopy;
 	kernelCopy.width = kernel.width;
 	kernelCopy.height = kernel.height;
@@ -317,25 +286,10 @@ void convolve(myImage &data, myKernel kernel, myImage &result){
 		for(int i = 0; i < kernel.height; i++){
 			kernel2[i] = kernel.pixels[0][i] / kernel.pixels[0][0];
 		}
-		myImage resultTemp;
-		resultTemp.width = data.width;
-		resultTemp.height = data.height;
+		gil::rgb8_image_t resultTemp(data.width(), data.height());
 
-		resultTemp.pixels = new int**[resultTemp.width];
-		#pragma omp parallel for
-		for(int i = 0; i<resultTemp.width; i++){
-			resultTemp.pixels[i] = new int*[resultTemp.height];
-			for(int j = 0; j<resultTemp.height; j++){
-				resultTemp.pixels[i][j] = new int[3];
-				resultTemp.pixels[i][j][0] = 0;
-				resultTemp.pixels[i][j][1] = 0;
-				resultTemp.pixels[i][j][2] = 0;
-			}
-
-		}
 		convolve1D(data,kernel1,kernel.width,0,resultTemp);
 		convolve1D(resultTemp,kernel2,kernel.height,1,result);
-		releaseOutputImage(resultTemp);
 	}
 	else{
 		convolve2D(data,kernel,result);
@@ -375,25 +329,16 @@ void releaseOutputImage(myImage &result) {
 }
 
 // Output transformed point cloud data
-bool outputImageFile(const myImage &result, string outputImage) {
-
-	gil::rgb8_image_t toWrite(result.width, result.height);
-	gil::rgb8_image_t::view_t v = view(toWrite);
-	#pragma omp parallel for
-	for(int i=0; i< result.width; i++){
-		for(int j=0; j< result.height;j++){
-			v(i, j) = gil::rgb8_pixel_t(result.pixels[i][j][0], result.pixels[i][j][1], result.pixels[i][j][2]);
-		}
-	}
+bool outputImageFile(const gil::rgb8_image_t &result, string outputImage) {
 	fs::path outputPath(outputImage);
 	if(outputPath.parent_path().string() != "" && !fs::is_directory(outputPath.parent_path())){
 		fs::create_directory(outputPath.parent_path());
 	}
 	if(outputImage.substr(outputImage.length() - 4) == ".jpg" || outputImage.substr(outputImage.length() - 5) == ".jpeg"){
-		gil::jpeg_write_view(outputImage, const_view(toWrite));
+		gil::jpeg_write_view(outputImage, const_view(result));
 	}
 	else if(outputImage.substr(outputImage.length() - 4) == ".png"){
-		gil::png_write_view(outputImage, const_view(toWrite));
+		gil::png_write_view(outputImage, const_view(result));
 	}
 
 	return true;

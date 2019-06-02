@@ -1,7 +1,7 @@
 all: main.exe
 
 CC=g++
-override CFLAGS += -Wall -Wextra -g -fopenmp
+override CFLAGS += -Wall -O3 -Wextra -g -fopenmp
 
 OBJS=stopwatch.o convolution.o
 
