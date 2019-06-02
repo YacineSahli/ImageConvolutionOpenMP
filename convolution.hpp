@@ -21,7 +21,7 @@ struct myImage {
 };
 
 struct myKernel {
-	int** pixels;
+	double** pixels;
 	int width;
    	int height;
    	int divisor;
