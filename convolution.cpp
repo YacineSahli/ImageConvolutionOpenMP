@@ -168,7 +168,7 @@ void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int dir
 			{
 				// index of input signal, used for checking boundary
 
-				int ii;
+				int ii=0;
 				if(direction == 0)
 					ii = i + (m - kCenter);
 				else if(direction == 1)
@@ -182,17 +182,15 @@ void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int dir
 					ii = data.height() - 1;
 				if(direction == 0){
 					gil::rgb8_pixel_t pxOriginal = dataView(ii,j);
-					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
-					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
-								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
-								   (int)px[2] + (int)pxOriginal[2] * kernel[m]);
+					v(i,j) = gil::rgb8_pixel_t((int)v(i,j)[0] + (int)pxOriginal[0] * kernel[m],
+								   (int)v(i,j)[1] + (int)pxOriginal[1] * kernel[m],
+								   (int)v(i,j)[2] + (int)pxOriginal[2] * kernel[m]);
 				}
 				else if(direction == 1){
 					gil::rgb8_pixel_t pxOriginal = dataView(i,ii);
-					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
-					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel[m],
-								   (int)px[1] + (int)pxOriginal[1] * kernel[m],
-								   (int)px[2] + (int)pxOriginal[2] * kernel[m]);
+					v(i,j) = gil::rgb8_pixel_t((int)v(i,j)[0] + (int)pxOriginal[0] * kernel[m],
+								   (int)v(i,j)[1] + (int)pxOriginal[1] * kernel[m],
+								   (int)v(i,j)[2] + (int)pxOriginal[2] * kernel[m]);
 				}
 			}
 			/*if(result.pixels[i][j][0] > 255)
@@ -242,10 +240,9 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 						jj = data.height() - 1;
 
 					gil::rgb8_pixel_t pxOriginal = dataView(ii,jj);
-					gil::rgb8_pixel_t px = *const_view(result).at(i,j);
-					v(i,j) = gil::rgb8_pixel_t((int)px[0] + (int)pxOriginal[0] * kernel.pixels[m][n],
-								   (int)px[1] + (int)pxOriginal[1] * kernel.pixels[m][n],
-								   (int)px[2] + (int)pxOriginal[2] * kernel.pixels[m][n]);
+					v(i,j) = gil::rgb8_pixel_t((int)v(i,j)[0] + (int)pxOriginal[0] * kernel.pixels[m][n],
+								   (int)v(i,j)[1] + (int)pxOriginal[1] * kernel.pixels[m][n],
+								   (int)v(i,j)[2] + (int)pxOriginal[2] * kernel.pixels[m][n]);
 				}
 			}
 			/*if(result.pixels[i][j][0] > 255)
