@@ -171,6 +171,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	}
 
 	double*** tempResult = new double**[data.width()];
+	#pragma omp parallel for
 	for(int i = 0; i < data.width(); i++){
 		tempResult[i] = new double*[data.height()];
 		for(int j = 0; j< data.height(); j++){
@@ -218,9 +219,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 				tmpB = 255;
 			else if(tmpB < 0)
 				tmpB = 0;
-			tempResult[i][j][0] += tmpR;
-			tempResult[i][j][1] += tmpG;
-			tempResult[i][j][2] += tmpB;
+			tempResult[i][j][0] = tmpR;
+			tempResult[i][j][1] = tmpG;
+			tempResult[i][j][2] = tmpB;
 		}
 	}
 	#pragma omp parallel for default(none) shared(result) firstprivate(tempResult, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
@@ -258,9 +259,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 				tmpB = 255;
 			else if(tmpB < 0)
 				tmpB = 0;
-			v(i,j)[0] += tmpR;
-			v(i,j)[1] += tmpG;
-			v(i,j)[2] += tmpB;
+			v(i,j)[0] = tmpR;
+			v(i,j)[1] = tmpG;
+			v(i,j)[2] = tmpB;
 		}
 	}
 
@@ -325,9 +326,9 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 				tmpB = 255;
 			else if(tmpB < 0)
 				tmpB = 0;
-			v(i,j)[0] += tmpR;
-			v(i,j)[1] += tmpG;
-			v(i,j)[2] += tmpB;
+			v(i,j)[0] = tmpR;
+			v(i,j)[1] = tmpG;
+			v(i,j)[2] = tmpB;
 		}
 	}
 }
