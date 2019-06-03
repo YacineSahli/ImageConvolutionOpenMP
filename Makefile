@@ -40,6 +40,13 @@ stats: main.exe
 	OMP_NUM_THREADS=16 ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
 	OMP_NUM_THREADS=32 ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number.txt
 
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >  tmp_bigpic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=2  ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=4  ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=8  ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=16 ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=32 ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >  tmp_smallpic_different_kernel_size_separable.txt
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur5 outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_separable.txt
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur7 outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_separable.txt
