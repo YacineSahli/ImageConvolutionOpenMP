@@ -226,7 +226,6 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = tmpB;
 		}
 	}
-	#pragma omp barrier
 	#pragma omp for
 	for(int i=0; i < data.width(); i++)               // rows
 	{
