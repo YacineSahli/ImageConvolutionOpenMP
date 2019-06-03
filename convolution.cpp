@@ -143,7 +143,6 @@ bool readKernel(string filename, myKernel &kernel) {
 		}
 		std::getline(inp, str);
 	}
-	cout << kernel.divisor << "\n";
 	if(kernel.divisor != 0 && kernel.divisor != 1){
 		for(int i = 0; i<kernel.width; i++){
 			for(int j = 0; j<kernel.height; j++){
@@ -156,58 +155,123 @@ bool readKernel(string filename, myKernel &kernel) {
 
 
 // Perform a 1D convolution, direction : 0 horizontal, 1 vertical
-void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int direction, gil::rgb8_image_t &result){
-	int kCenter = (kernelSize - 1) / 2;
+void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &result){
+	int kCenter0 = (kernel.width - 1) / 2;
+	int kCenter1 = (kernel.height - 1) / 2;
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(dataView,v,direction,kCenter,data,kernelSize,kernel)
+
+	double kernel1[kernel.width];
+	double kernel2[kernel.height];
+	for(int i = 0; i < kernel.width; i++){
+		kernel1[i] = kernel.pixels[i][0];
+	}
+	for(int i = 0; i < kernel.height; i++){
+		kernel2[i] = kernel.pixels[0][i] / kernel.pixels[0][0];
+	}
+
+	double*** tempResult = new double**[data.width()];
+	for(int i = 0; i < data.width(); i++){
+		tempResult[i] = new double*[data.height()];
+		for(int j = 0; j< data.height(); j++){
+			tempResult[i][j] = new double[3];
+			tempResult[i][j][0] = 0;
+			tempResult[i][j][1] = 0;
+			tempResult[i][j][2] = 0;
+		}
+	}
+	#pragma omp parallel for default(none) shared(tempResult) firstprivate(result, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
 		{
-			for(int m=0; m < kernelSize; m++) // kernel columns
+			double tmpR =0;
+			double tmpG =0;
+			double tmpB =0;
+			for(int m=0; m < kernel.width; m++) // kernel columns
 			{
 				// index of input signal, used for checking boundary
 
-				int ii=0;
-				if(direction == 0)
-					ii = i + (m - kCenter);
-				else if(direction == 1)
-					ii = j + (m - kCenter);
+				int ii = i + (m - kCenter0);
 				// Use the value of the closest pixel if out of bound
 				if(ii < 0)
 					ii = 0;
-				else if(direction == 0 && ii >= data.width())
+				else if(ii >= data.width())
 					ii = data.width() - 1;
-				else if(direction == 1 && ii >= data.height())
-					ii = data.height() - 1;
-				if(direction == 0){
-					gil::rgb8_pixel_t pxOriginal = dataView(ii,j);
-					v(i,j)[0] += (int)pxOriginal[0] * kernel[m];
-					v(i,j)[1] += (int)pxOriginal[1] * kernel[m];
-					v(i,j)[2] += (int)pxOriginal[2] * kernel[m];
-				}
-				else if(direction == 1){
-					gil::rgb8_pixel_t pxOriginal = dataView(i,ii);
-					v(i,j)[0] += (int)pxOriginal[0] * kernel[m];
-					v(i,j)[1] += (int)pxOriginal[1] * kernel[m];
-					v(i,j)[2] += (int)pxOriginal[2] * kernel[m];
-				}
+
+				gil::rgb8_pixel_t pxOriginal = dataView(0,0);
+				pxOriginal = dataView(ii,j);
+
+				tmpR += (double)pxOriginal[0] * kernel1[m];
+				tmpG += (double)pxOriginal[1] * kernel1[m];
+				tmpB += (double)pxOriginal[2] * kernel1[m];
 			}
-			/*if((int)v(i,j)[0] > 255)
-				v(i,j)[0] = 255;
-			else if((int)v(i,j)[0]  < 0)
-				v(i,j)[0] = 0;
-			if((int)v(i,j)[1] > 255)
-				v(i,j)[1] = 255;
-			else if((int)v(i,j)[1] < 0)
-				v(i,j)[1] = 0;
-			if((int)v(i,j)[2] > 255)
-				v(i,j)[2] = 255;
-			else if((int)v(i,j)[2] < 0)
-				v(i,j)[2] = 0;*/
+			if(tmpR > 255)
+				tmpR = 255;
+			else if(tmpR < 0)
+				tmpR =0;
+			if(tmpG > 255)
+				tmpG = 255;
+			else if(tmpG < 0)
+				tmpG =0;
+			if(tmpB > 255)
+				tmpB = 255;
+			else if(tmpB < 0)
+				tmpB = 0;
+			tempResult[i][j][0] += tmpR;
+			tempResult[i][j][1] += tmpG;
+			tempResult[i][j][2] += tmpB;
 		}
 	}
+	#pragma omp parallel for default(none) shared(result) firstprivate(tempResult, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
+	for(int i=0; i < data.width(); i++)               // rows
+	{
+		for(int j=0; j < data.height(); j++)          // columns
+		{
+			double tmpR =0;
+			double tmpG =0;
+			double tmpB =0;
+			for(int m=0; m < kernel.height; m++) // kernel columns
+			{
+				// index of input signal, used for checking boundary
+
+				int ii = j + (m - kCenter1);
+				// Use the value of the closest pixel if out of bound
+				if(ii < 0)
+					ii = 0;
+				else if(ii >= data.height())
+					ii = data.height() - 1;
+
+				tmpR += tempResult[i][ii][0] * kernel2[m];
+				tmpG += tempResult[i][ii][1] * kernel2[m];
+				tmpB += tempResult[i][ii][2] * kernel2[m];
+			}
+			if(tmpR > 255)
+				tmpR = 255;
+			else if(tmpR < 0)
+				tmpR =0;
+			if(tmpG > 255)
+				tmpG = 255;
+			else if(tmpG < 0)
+				tmpG =0;
+			if(tmpB > 255)
+				tmpB = 255;
+			else if(tmpB < 0)
+				tmpB = 0;
+			v(i,j)[0] += tmpR;
+			v(i,j)[1] += tmpG;
+			v(i,j)[2] += tmpB;
+		}
+	}
+
+	for(int i = 0; i<data.width(); i++){
+		for(int j = 0; j<data.height(); j++){
+			delete[] tempResult[i][j];
+		}
+		delete[] tempResult[i];
+	}
+	delete[] tempResult;
+
 }
 // This function conducts a 2D convolution.
 void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
@@ -217,11 +281,14 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for collapse(2) default(none) shared(result) firstprivate(dataView,v,kCenterX,kCenterY,data,kernel)
+	#pragma omp parallel for default(none) shared(result) firstprivate(dataView,v,kCenterX,kCenterY,data,kernel)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
 		{
+			double tmpR =0;
+			double tmpG =0;
+			double tmpB =0;
 			for(int m=0; m < kernel.width; m++)     // kernel rows
 			{
 				for(int n=0; n < kernel.height; n++) // kernel columns
@@ -241,23 +308,26 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 						jj = data.height() - 1;
 
 					gil::rgb8_pixel_t pxOriginal = dataView(ii,jj);
-					v(i,j)[0] += (int)pxOriginal[0] * kernel.pixels[m][n];
-					v(i,j)[1] += (int)pxOriginal[1] * kernel.pixels[m][n];
-					v(i,j)[2] += (int)pxOriginal[2] * kernel.pixels[m][n];
+					tmpR += pxOriginal[0] * kernel.pixels[m][n];
+					tmpG += pxOriginal[1] * kernel.pixels[m][n];
+					tmpB += pxOriginal[2] * kernel.pixels[m][n];
 				}
 			}
-			/*if(v(i,j)[0] > 255)
-				v(i,j)[0] = 255;
-			else if((int)v(i,j)[0]  < 0)
-				v(i,j)[0] = 0;
-			if((int)v(i,j)[1] > 255)
-				v(i,j)[1] = 255;
-			else if((int)v(i,j)[1] < 0)
-				v(i,j)[1] = 0;
-			if((int)v(i,j)[2] > 255)
-				v(i,j)[2] = 255;
-			else if((int)v(i,j)[2] < 0)
-				v(i,j)[2] = 0;*/
+			if(tmpR > 255)
+				tmpR = 255;
+			else if(tmpR < 0)
+				tmpR =0;
+			if(tmpG > 255)
+				tmpG = 255;
+			else if(tmpG < 0)
+				tmpG =0;
+			if(tmpB > 255)
+				tmpB = 255;
+			else if(tmpB < 0)
+				tmpB = 0;
+			v(i,j)[0] += tmpR;
+			v(i,j)[1] += tmpG;
+			v(i,j)[2] += tmpB;
 		}
 	}
 }
@@ -277,18 +347,8 @@ void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &resul
 		#ifdef DEBUG
 			cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
 		#endif
-		double kernel1[kernel.width];
-		double kernel2[kernel.height];
-		for(int i = 0; i < kernel.width; i++){
-			kernel1[i] = kernel.pixels[i][0];
-		}
-		for(int i = 0; i < kernel.height; i++){
-			kernel2[i] = kernel.pixels[0][i] / kernel.pixels[0][0];
-		}
-		gil::rgb8_image_t resultTemp(data.width(), data.height());
 
-		convolve1D(data,kernel1,kernel.width,0,resultTemp);
-		convolve1D(resultTemp,kernel2,kernel.height,1,result);
+		convolve1D(data,kernel,result);
 	}
 	else{
 		convolve2D(data,kernel,result);

@@ -39,7 +39,7 @@ void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &resul
 
 void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result);
 
-void convolve1D(gil::rgb8_image_t &data, double kernel[],int kernelSize, int direction, gil::rgb8_image_t &result);
+void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &result);
 
 bool outputImageFile(const gil::rgb8_image_t &result, std::string outputImage);
 
