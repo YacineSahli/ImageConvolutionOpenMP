@@ -181,7 +181,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = 0;
 		}
 	}
-	#pragma omp parallel for default(none) shared(tempResult) firstprivate(result, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
+	#pragma omp parallel default(none) shared(tempResult) firstprivate(result, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
+	{
+	#pragma omp for
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -224,7 +226,8 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = tmpB;
 		}
 	}
-	#pragma omp parallel for default(none) shared(result) firstprivate(tempResult, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
+	#pragma omp barrier
+	#pragma omp for
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -272,7 +275,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 		delete[] tempResult[i];
 	}
 	delete[] tempResult;
-
+	}
 }
 // This function conducts a 2D convolution.
 void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
