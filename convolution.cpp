@@ -282,14 +282,12 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for default(none) shared(result) firstprivate(dataView,v,kCenterX,kCenterY,data,kernel)
+	#pragma omp parallel for default(none)  firstprivate(result,dataView,v,kCenterX,kCenterY,data,kernel)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
 		{
-			double tmpR =0;
-			double tmpG =0;
-			double tmpB =0;
+			double tmpRGB[3] ={0};
 			for(int m=0; m < kernel.width; m++)     // kernel rows
 			{
 				for(int n=0; n < kernel.height; n++) // kernel columns
@@ -309,26 +307,26 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 						jj = data.height() - 1;
 
 					gil::rgb8_pixel_t pxOriginal = dataView(ii,jj);
-					tmpR += pxOriginal[0] * kernel.pixels[m][n];
-					tmpG += pxOriginal[1] * kernel.pixels[m][n];
-					tmpB += pxOriginal[2] * kernel.pixels[m][n];
+					tmpRGB[0] += pxOriginal[0] * kernel.pixels[m][n];
+					tmpRGB[1] += pxOriginal[1] * kernel.pixels[m][n];
+					tmpRGB[2] += pxOriginal[2] * kernel.pixels[m][n];
 				}
 			}
-			if(tmpR > 255)
-				tmpR = 255;
-			else if(tmpR < 0)
-				tmpR =0;
-			if(tmpG > 255)
-				tmpG = 255;
-			else if(tmpG < 0)
-				tmpG =0;
-			if(tmpB > 255)
-				tmpB = 255;
-			else if(tmpB < 0)
-				tmpB = 0;
-			v(i,j)[0] = tmpR;
-			v(i,j)[1] = tmpG;
-			v(i,j)[2] = tmpB;
+			if(tmpRGB[0] > 255)
+				tmpRGB[0] = 255;
+			else if(tmpRGB[0] < 0)
+				tmpRGB[0] =0;
+			if(tmpRGB[1] > 255)
+				tmpRGB[1] = 255;
+			else if(tmpRGB[1] < 0)
+				tmpRGB[1] =0;
+			if(tmpRGB[2] > 255)
+				tmpRGB[2] = 255;
+			else if(tmpRGB[2] < 0)
+				tmpRGB[2] = 0;
+			v(i,j)[0] = tmpRGB[0];
+			v(i,j)[1] = tmpRGB[1];
+			v(i,j)[2] = tmpRGB[2];
 		}
 	}
 }
@@ -344,7 +342,7 @@ void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &resul
 			kernelCopy.pixels[i][j] = kernel.pixels[i][j];
 		}
 	}
-	if(rankOfMatrix(kernelCopy) == 1){
+	if(kernel.width >6 && kernel.height >6 && rankOfMatrix(kernelCopy) == 1){
 		#ifdef DEBUG
 			cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
 		#endif
