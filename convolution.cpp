@@ -268,6 +268,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 		}
 	}
 
+	}
 	for(int i = 0; i<data.width(); i++){
 		for(int j = 0; j<data.height(); j++){
 			delete[] tempResult[i][j];
@@ -275,7 +276,6 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 		delete[] tempResult[i];
 	}
 	delete[] tempResult;
-	}
 }
 // This function conducts a 2D convolution.
 void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
