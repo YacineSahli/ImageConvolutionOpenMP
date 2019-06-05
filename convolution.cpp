@@ -154,7 +154,7 @@ bool readKernel(string filename, myKernel &kernel) {
 }
 
 
-// Perform a 1D convolution, direction : 0 horizontal, 1 vertical
+// Perform two 1D convolution by separating the 2D kernel
 void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &result){
 	int kCenter0 = (kernel.width - 1) / 2;
 	int kCenter1 = (kernel.height - 1) / 2;
@@ -171,7 +171,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	}
 
 	double*** tempResult = new double**[data.width()];
-	#pragma omp parallel for
+	#pragma omp parallel /* shared( kCenter0, kCenter1, kernel1, kernel2, dataView,data,kernel) firstprivate(tempResult, result, v) */
+	{
+	#pragma omp for schedule(static)
 	for(int i = 0; i < data.width(); i++){
 		tempResult[i] = new double*[data.height()];
 		for(int j = 0; j< data.height(); j++){
@@ -181,9 +183,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = 0;
 		}
 	}
-	#pragma omp parallel default(none) shared(tempResult) firstprivate(result, kCenter0, kCenter1, kernel1, kernel2, dataView,v,data,kernel)
-	{
-	#pragma omp for
+	#pragma omp for schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -226,7 +226,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = tmpB;
 		}
 	}
-	#pragma omp for
+	#pragma omp for schedule (static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -284,7 +284,7 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for default(none)  firstprivate(result,dataView,v,kCenterX,kCenterY,data,kernel)
+	#pragma omp parallel for shared(dataView,kCenterX,kCenterY,data,kernel) firstprivate(result, v) schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -344,7 +344,7 @@ void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &resul
 			kernelCopy.pixels[i][j] = kernel.pixels[i][j];
 		}
 	}
-	if(kernel.width >6 && kernel.height >6 && rankOfMatrix(kernelCopy) == 1){
+	if(rankOfMatrix(kernelCopy) == 1){
 		#ifdef DEBUG
 			cout << "\n\nKernel is separable, performing two 1D convolution\n\n";
 		#endif

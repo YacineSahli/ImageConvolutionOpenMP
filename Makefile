@@ -1,7 +1,7 @@
 all: main.exe
 
 CC=g++
-override CFLAGS += -Wall -O3 -Wextra -g -fopenmp
+override CFLAGS += -Wall -std=c++11 -O3 -Wextra -fopenmp
 
 OBJS=stopwatch.o convolution.o
 
@@ -13,6 +13,8 @@ main.exe: $(OBJS) main.cpp
 
 valgrind: main.exe
 	valgrind --leak-check=full ./main.exe images/dragon.png kernels/box_blur3 outFolder/dragon.jpg
+cachegrind: main .exe
+	valgrind --tool=cachegrind ./main.exe images/dragon.png kernels/box_blur3 outFolder/dragon.jpg
 test: main.exe
 	./main.exe images/dragon.jpg kernels/box_blur3 outFolder/dragon.jpg
 speed: main.exe
@@ -46,6 +48,21 @@ stats: main.exe
 	OMP_NUM_THREADS=8  ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
 	OMP_NUM_THREADS=16 ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
 	OMP_NUM_THREADS=32 ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel.txt
+
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >  tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+	OMP_NUM_THREADS=2  ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+	OMP_NUM_THREADS=4  ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+	OMP_NUM_THREADS=8  ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+	OMP_NUM_THREADS=16 ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+	OMP_NUM_THREADS=32 ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_thread_number_large_kernel_not_separable.txt
+
+	OMP_NUM_THREADS=1  ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >  tmp_extraLargePic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=2  ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_extraLargePic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=4  ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_extraLargePic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=8  ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_extraLargePic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=16 ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_extraLargePic_different_thread_number_large_kernel.txt
+	OMP_NUM_THREADS=32 ./main.exe images/extraLarge.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_extraLargePic_different_thread_number_large_kernel.txt
+
 
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur3 outFolder/tmp.jpg >  tmp_smallpic_different_kernel_size_separable.txt
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur5 outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_separable.txt
