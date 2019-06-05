@@ -183,7 +183,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = 0;
 		}
 	}
-	#pragma omp for schedule(static)
+	#pragma omp for collapse(2) schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
@@ -226,7 +226,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 			tempResult[i][j][2] = tmpB;
 		}
 	}
-	#pragma omp for schedule (static)
+	#pragma omp for collapse(2) schedule (static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
