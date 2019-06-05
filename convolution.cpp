@@ -171,7 +171,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	}
 
 	double*** tempResult = new double**[data.width()];
-	#pragma omp parallel /* shared( kCenter0, kCenter1, kernel1, kernel2, dataView,data,kernel) firstprivate(tempResult, result, v) */
+	#pragma omp parallel shared( kCenter0, kCenter1, kernel1, kernel2, dataView,data,kernel, v) firstprivate( result, tempResult)
 	{
 	#pragma omp for schedule(static)
 	for(int i = 0; i < data.width(); i++){
@@ -284,7 +284,7 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for shared(dataView,kCenterX,kCenterY,data,kernel) firstprivate(result, v) schedule(static)
+	#pragma omp parallel for collapse(2) shared(dataView,kCenterX,kCenterY,data,kernel, v) firstprivate(result) schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
