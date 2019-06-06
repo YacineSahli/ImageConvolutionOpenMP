@@ -100,7 +100,6 @@ int rankOfMatrix(const myKernel kernel){
     return rank;
 }
 
-// Read the original point cloud data
 bool readImage(string filename, gil::rgb8_image_t &data) {
 	if(filename.substr(filename.length() - 4) == ".jpg" || filename.substr(filename.length() - 5) == ".jpeg"){
 		gil::jpeg_read_image(filename, data);
@@ -199,18 +198,6 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 				tmpG += (double)pxOriginal[1] * kernel1[m];
 				tmpB += (double)pxOriginal[2] * kernel1[m];
 			}
-			if(tmpR > 255)
-				tmpR = 255;
-			else if(tmpR < 0)
-				tmpR =0;
-			if(tmpG > 255)
-				tmpG = 255;
-			else if(tmpG < 0)
-				tmpG =0;
-			if(tmpB > 255)
-				tmpB = 255;
-			else if(tmpB < 0)
-				tmpB = 0;
 			tempResult[i + data.width() * (j + data.height() * 0)] = tmpR;
 			tempResult[i + data.width() * (j + data.height() * 1)] = tmpG;
 			tempResult[i + data.width() * (j + data.height() * 2)] = tmpB;
@@ -315,6 +302,7 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 		}
 	}
 }
+// Do a convolution and choose to use two 1D convolution or one 2D convolution
 void convolve(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
 	myKernel kernelCopy;
 	kernelCopy.width = kernel.width;
