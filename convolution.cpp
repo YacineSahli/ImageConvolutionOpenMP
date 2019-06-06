@@ -11,6 +11,7 @@
 #include <boost/gil/extension/io/png_io.hpp>
 #include "boost/filesystem.hpp"
 #include <bits/stdc++.h>
+#include "stopwatch.hpp"
 
 using namespace std;
 namespace gil = boost::gil;
@@ -160,7 +161,7 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	int kCenter1 = (kernel.height - 1) / 2;
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
-
+	stopwatch t;
 	double kernel1[kernel.width];
 	double kernel2[kernel.height];
 	for(int i = 0; i < kernel.width; i++){
@@ -169,20 +170,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	for(int i = 0; i < kernel.height; i++){
 		kernel2[i] = kernel.pixels[0][i] / kernel.pixels[0][0];
 	}
-
-	double*** tempResult = new double**[data.width()];
-	#pragma omp parallel shared( kCenter0, kCenter1, kernel1, kernel2, dataView,data,kernel, v) firstprivate( result, tempResult)
+	vector<double> tempResult(data.width() * data.height() * 3);
+	#pragma omp parallel shared( kCenter0, kCenter1, kernel1, kernel2, dataView,data,kernel, v, result, tempResult)
 	{
-	#pragma omp for schedule(static)
-	for(int i = 0; i < data.width(); i++){
-		tempResult[i] = new double*[data.height()];
-		for(int j = 0; j< data.height(); j++){
-			tempResult[i][j] = new double[3];
-			tempResult[i][j][0] = 0;
-			tempResult[i][j][1] = 0;
-			tempResult[i][j][2] = 0;
-		}
-	}
 	#pragma omp for collapse(2) schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
@@ -221,9 +211,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 				tmpB = 255;
 			else if(tmpB < 0)
 				tmpB = 0;
-			tempResult[i][j][0] = tmpR;
-			tempResult[i][j][1] = tmpG;
-			tempResult[i][j][2] = tmpB;
+			tempResult[i + data.width() * (j + data.height() * 0)] = tmpR;
+			tempResult[i + data.width() * (j + data.height() * 1)] = tmpG;
+			tempResult[i + data.width() * (j + data.height() * 2)] = tmpB;
 		}
 	}
 	#pragma omp for collapse(2) schedule (static)
@@ -245,9 +235,9 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 				else if(ii >= data.height())
 					ii = data.height() - 1;
 
-				tmpR += tempResult[i][ii][0] * kernel2[m];
-				tmpG += tempResult[i][ii][1] * kernel2[m];
-				tmpB += tempResult[i][ii][2] * kernel2[m];
+				tmpR += tempResult[ i + data.width() * (ii + data.height() * 0)] * kernel2[m];
+				tmpG += tempResult[ i + data.width() * (ii + data.height() * 1)] * kernel2[m];
+				tmpB += tempResult[ i + data.width() * (ii + data.height() * 2)] * kernel2[m];
 			}
 			if(tmpR > 255)
 				tmpR = 255;
@@ -268,13 +258,6 @@ void convolve1D(gil::rgb8_image_t &data, myKernel kernel,  gil::rgb8_image_t &re
 	}
 
 	}
-	for(int i = 0; i<data.width(); i++){
-		for(int j = 0; j<data.height(); j++){
-			delete[] tempResult[i][j];
-		}
-		delete[] tempResult[i];
-	}
-	delete[] tempResult;
 }
 // This function conducts a 2D convolution.
 void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &result){
@@ -284,7 +267,7 @@ void convolve2D(gil::rgb8_image_t &data, myKernel kernel, gil::rgb8_image_t &res
 	gil::rgb8_image_t::view_t v = view(result);
 	gil::rgb8_image_t::const_view_t dataView = const_view(data);
 
-	#pragma omp parallel for collapse(2) shared(dataView,kCenterX,kCenterY,data,kernel, v) firstprivate(result) schedule(static)
+	#pragma omp parallel for collapse(2) shared(dataView,kCenterX,kCenterY,data,kernel, v, result) schedule(static)
 	for(int i=0; i < data.width(); i++)               // rows
 	{
 		for(int j=0; j < data.height(); j++)          // columns
