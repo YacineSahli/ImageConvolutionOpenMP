@@ -99,6 +99,23 @@ stats: main.exe
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur11_not_separable outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_not_separable.txt
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur13_not_separable outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_not_separable.txt
 	OMP_NUM_THREADS=1  ./main.exe images/dragon.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_smallpic_different_kernel_size_not_separable.txt
+
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur3 outFolder/tmp.jpg >  tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur5 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur7 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur9 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1 ./main.exe images/veryBig.jpg kernels/box_blur11 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1 ./main.exe images/veryBig.jpg kernels/box_blur13 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+	OMP_NUM_THREADS=1 ./main.exe images/veryBig.jpg kernels/box_blur15 outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_separable.txt
+
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur3_not_separable outFolder/tmp.jpg >  tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur5_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur7_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur9_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur11_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur13_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+	OMP_NUM_THREADS=1  ./main.exe images/veryBig.jpg kernels/box_blur15_not_separable outFolder/tmp.jpg >> tmp_bigpic_different_kernel_size_not_separable.txt
+
 folder: main.exe
 	./main.exe images kernels/box_blur3 outFolder
 # This cleans up the project
